@@ -2,3 +2,4 @@
 {"timestamp": "2026-07-06T07:21:47.217072+00:00", "model_id": "MODEL_0.9128741265746085", "threshold": 0.8, "passed": true, "total": 100, "tp": 90, "fp": 0, "fn": 10, "tn": 0, "accuracy": 0.9, "precision": 1.0, "recall": 0.9}
 {"timestamp": "2026-07-06T07:21:56.141387+00:00", "model_id": "MODEL_0.9288620514961528", "threshold": 0.8, "passed": true, "total": 100, "tp": 93, "fp": 0, "fn": 7, "tn": 0, "accuracy": 0.93, "precision": 1.0, "recall": 0.93}
 {"timestamp": "2026-07-06T07:21:57.803109+00:00", "model_id": "MODEL_0.7374125446863105", "threshold": 0.8, "passed": false, "total": 100, "tp": 72, "fp": 0, "fn": 28, "tn": 0, "accuracy": 0.72, "precision": 1.0, "recall": 0.72}
+{"timestamp": "2026-07-06T07:41:58.056395+00:00", "model_id": "MODEL_0.871043918380994", "threshold": 0.8, "passed": true, "total": 100, "tp": 89, "fp": 0, "fn": 11, "tn": 0, "accuracy": 0.89, "precision": 1.0, "recall": 0.89}
