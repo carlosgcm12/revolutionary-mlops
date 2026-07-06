@@ -1,0 +1,92 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Needed to (a) commit the run history back to the repo and
+# (b) deploy the status page to GitHub Pages.
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Recommended by GitHub for Pages deployments: only one deployment at a time.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # 1. Lint, format check and type check on all code AND tests.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --all-groups
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run ty check .
+
+  # 2. Unit tests. Only runs if lint passed.
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --all-groups
+      - run: uv run pytest -q
+
+  # 3. Train a new model version, evaluate it on the validation set and
+  #    apply the >=80% quality gate. Only runs if tests passed.
+  train-and-validate:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --all-groups
+
+      # Fails the job (and therefore the whole pipeline) if accuracy,
+      # precision or recall drop below the threshold.
+      - run: uv run python scripts/run_pipeline.py
+
+      - run: uv run python scripts/generate_report.py
+
+      # Persist the run history directly in the repo, as requested.
+      - name: Commit run history
+        if: github.event_name == 'push'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: record pipeline run [skip ci]"
+          file_pattern: "history/runs.jsonl docs/index.html"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: status-page
+          path: docs/
+
+  # 4. Deploy the status page to GitHub Pages. Only runs if training and
+  #    validation passed the quality gate, and only from the main branch.
+  deploy:
+    needs: train-and-validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: status-page
+          path: docs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deployment
+        uses: actions/deploy-pages@v4
