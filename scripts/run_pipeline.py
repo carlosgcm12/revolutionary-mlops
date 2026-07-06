@@ -1,4 +1,3 @@
-
 import argparse
 import datetime
 import json
@@ -50,7 +49,6 @@ def main() -> None:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(run_record, indent=2))
 
-    
     args.history.parent.mkdir(parents=True, exist_ok=True)
     with args.history.open("a") as f:
         f.write(json.dumps(run_record) + "\n")
